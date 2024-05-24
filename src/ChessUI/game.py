@@ -3,6 +3,7 @@ import pygame
 from .const import *
 from .board import Board
 from .dragger import Dragger
+from .helper import highlight_color
 
 
 class Game:
@@ -19,6 +20,9 @@ class Game:
                 else:
                     color = (119, 154, 88)  # dark green
 
+                if self.dragger.initial_col == col and self.dragger.initial_row == row:
+                    color = highlight_color(color)
+
                 rect = pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE)
                 pygame.draw.rect(surface, color, rect)
 
@@ -31,4 +35,5 @@ class Game:
                     img = pygame.image.load(piece.texture)
                     img_center = col * SQ_SIZE + SQ_SIZE // 2, row * SQ_SIZE + SQ_SIZE // 2
                     piece.texture_rect = img.get_rect(center=img_center)
-                    surface.blit(img, piece.texture_rect)
+                    if not self.dragger.piece == piece:
+                        surface.blit(img, piece.texture_rect)

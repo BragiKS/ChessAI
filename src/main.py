@@ -22,6 +22,11 @@ class Main:
         while True:
             game.show_bg(screen)
             game.show_pieces(screen)
+
+            # piece follow mouse if dragging a piece
+            if dragger.dragging:
+                dragger.update_blit(screen)
+
             for event in pygame.event.get():
 
                 # click
@@ -44,10 +49,9 @@ class Main:
                 # mouse motion
                 elif event.type == pygame.MOUSEMOTION:
                     if dragger.dragging:
-                        dragger.update_mouse(event.pos)
-                        dragger.update_blit(screen)
+                        dragger.update_mouse(event.pos)  # update position if moving mouse
 
-                # click release
+                # release mouse-button
                 elif event.type == pygame.MOUSEBUTTONUP:
                     dragger.undrag_piece()
 

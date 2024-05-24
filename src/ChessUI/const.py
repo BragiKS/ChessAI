@@ -1,0 +1,7 @@
+WIDTH = 980
+HEIGHT = 980
+ROWS = 8
+COLS = 8
+PLAYER = 'black'
+PVP_MODE = False
+SQ_SIZE = WIDTH // COLS

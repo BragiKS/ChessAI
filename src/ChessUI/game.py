@@ -9,6 +9,7 @@ from .helper import highlight_color
 class Game:
 
     def __init__(self):
+        self.next_player = 'white'
         self.board = Board()
         self.dragger = Dragger()
 
@@ -37,3 +38,27 @@ class Game:
                     piece.texture_rect = img.get_rect(center=img_center)
                     if not self.dragger.piece == piece:
                         surface.blit(img, piece.texture_rect)
+
+    def show_moves(self, surface):
+        if self.dragger.dragging:
+            piece = self.dragger.piece
+
+            for move in piece.moves:
+                color = (100, 100, 100, 128)  # Grey
+                radius = 25
+                col = move.final.col + 0.5
+                row = move.final.row + 0.5
+                center = (col * SQ_SIZE, row * SQ_SIZE)
+
+                # Create a temporary surface with per-pixel alpha
+                temp_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+                temp_surface = temp_surface.convert_alpha()
+
+                # Draw the circle on the temporary surface
+                pygame.draw.circle(temp_surface, color, (radius, radius), radius)
+
+                # Blit the temporary surface onto the main surface
+                surface.blit(temp_surface, (center[0] - radius, center[1] - radius))
+
+    def next_turn(self):
+        self.next_player = 'white' if self.next_player == 'black' else 'black'

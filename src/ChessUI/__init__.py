@@ -4,3 +4,4 @@ from .piece import *
 from .square import *
 from .dragger import *
 from .const import *
+from .move import *

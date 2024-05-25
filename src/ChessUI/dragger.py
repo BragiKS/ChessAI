@@ -10,8 +10,8 @@ class Dragger:
         self.dragging = False
         self.mouseX = 0
         self.mouseY = 0
-        self.initial_row = 0
-        self.initial_col = 0
+        self.initial_row = None
+        self.initial_col = None
 
     def update_blit(self, surface):
         texture = self.piece.texture

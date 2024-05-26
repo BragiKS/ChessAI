@@ -3,27 +3,20 @@ import pygame
 from .const import *
 from .board import Board
 from .dragger import Dragger
-from .helper import highlight_color
 
 
 class Game:
 
     def __init__(self):
         self.next_player = 'white'
+        self.hovered_sqr = None
         self.board = Board()
         self.dragger = Dragger()
 
     def show_bg(self, surface):
         for row in range(ROWS):
             for col in range(COLS):
-                if (row + col) % 2 == 0:
-                    color = (234, 235, 200)  # light green
-                else:
-                    color = (119, 154, 88)  # dark green
-
-                if self.dragger.initial_col == col and self.dragger.initial_row == row:
-                    color = highlight_color(color)
-
+                color = LIGHT_SQUARE_COLOR if (row + col) % 2 == 0 else DARK_SQUARE_COLOR
                 rect = pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE)
                 pygame.draw.rect(surface, color, rect)
 
@@ -44,7 +37,7 @@ class Game:
             piece = self.dragger.piece
 
             for move in piece.moves:
-                color = (100, 100, 100, 128)  # Grey
+                color = GREY_COLOR
                 radius = 25
                 col = move.final.col + 0.5
                 row = move.final.row + 0.5
@@ -60,5 +53,29 @@ class Game:
                 # Blit the temporary surface onto the main surface
                 surface.blit(temp_surface, (center[0] - radius, center[1] - radius))
 
+    def show_last_move(self, surface):
+        if self.board.last_move:
+            initial = self.board.last_move.initial
+            final = self.board.last_move.final
+
+            for pos in [initial, final]:
+                color = HIGHLIGHT_COLOR_LIGHT if (pos.row + pos.col) % 2 == 0 else HIGHLIGHT_COLOR_DARK
+                rect = (pos.col * SQ_SIZE, pos.row * SQ_SIZE, SQ_SIZE, SQ_SIZE)
+                pygame.draw.rect(surface, color, rect)
+
+    def show_hover(self, surface):
+        if self.hovered_sqr:
+            row = self.hovered_sqr.row
+            col = self.hovered_sqr.col
+            color = LIGHT_HOVER if (row + col) % 2 == 0 else DARK_HOVER
+            rect = (col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE)
+            pygame.draw.rect(surface, color, rect, 5)
+
     def next_turn(self):
         self.next_player = 'white' if self.next_player == 'black' else 'black'
+
+    def set_hover(self, pos):
+        mouse_x, mouse_y = pos
+        row = max(min(mouse_y // SQ_SIZE, 7), 0)
+        col = max(min(mouse_x // SQ_SIZE, 7), 0)
+        self.hovered_sqr = self.board.squares[row, col]

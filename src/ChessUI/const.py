@@ -1,7 +1,17 @@
+# Settings
 WIDTH = 980
 HEIGHT = 980
 ROWS = 8
 COLS = 8
-PLAYER = 'white'
-PVP_MODE = True
-SQ_SIZE = WIDTH // COLS
+PLAYER = 'white'  # Choose what pieces are at bottom
+PVP_MODE = True  # True to play against play False to play against AI
+SQ_SIZE = WIDTH // COLS  # Square Size
+
+# Colors
+HIGHLIGHT_COLOR_LIGHT = 255, 255, 150
+HIGHLIGHT_COLOR_DARK = 181, 201, 82
+GREY_COLOR = 100, 100, 100, 128
+LIGHT_SQUARE_COLOR = 234, 235, 200
+DARK_SQUARE_COLOR = 119, 154, 88
+DARK_HOVER = 180, 180, 180
+LIGHT_HOVER = 255, 255, 255

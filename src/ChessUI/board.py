@@ -30,6 +30,12 @@ class Board:
     def get_king(self, color):
         return self.white_king if color == 'white' else self.black_king
 
+    def set_king(self, square, color):
+        if color == 'white':
+            self.white_king = square
+        else:
+            self.black_king = square
+
     def move(self, piece, move, future=False):
         initial = move.initial
         final = move.final
@@ -60,10 +66,7 @@ class Board:
 
         # setting the position for the kings if moved
         if piece.name == 'king':
-            if piece.color == 'white':
-                self.white_king = self.squares[final.row, final.col]
-            else:
-                self.black_king = self.squares[final.row, final.col]
+            self.set_king(self.squares[final.row, final.col], piece.color)
 
         # clear all previous possible moves
         self.clear_all_moves()
@@ -76,6 +79,10 @@ class Board:
         final_row = self.revert_move.final.row
         final_col = self.revert_move.final.col
         final_piece = self.captured_piece
+
+        # if king revert king move
+        if initial_piece.name == 'king':
+            self.set_king(self.squares[initial_row, initial_col], initial_piece.color)
 
         # revert table
         self.squares[initial_row, initial_col].piece = initial_piece

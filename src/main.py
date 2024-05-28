@@ -82,6 +82,7 @@ class Main:
 
                 elif event.type == pygame.KEYDOWN:
 
+                    # UNFINISHED MIGHT NOT DO THIS SINCE IT NEEDS ALOT OF REFORMATING
                     if event.key == pygame.K_f:
                         board.flip_board()
 

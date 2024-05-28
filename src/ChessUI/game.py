@@ -12,6 +12,7 @@ class Game:
         self.hovered_sqr = None
         self.board = Board()
         self.dragger = Dragger()
+        self.font = pygame.font.SysFont('monospace', 28, bold=True)
 
     def show_bg(self, surface):
         for row in range(ROWS):
@@ -19,6 +20,21 @@ class Game:
                 color = LIGHT_SQUARE_COLOR if (row + col) % 2 == 0 else DARK_SQUARE_COLOR
                 rect = pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE)
                 pygame.draw.rect(surface, color, rect)
+
+                # row coordinates
+                if col == 0:
+                    coord = ROWS - row if PLAYER == 'white' else row + 1
+                    color = DARK_SQUARE_COLOR if (col + row) % 2 == 0 else LIGHT_SQUARE_COLOR
+                    label = self.font.render(str(coord), 1, color)
+                    label_pos = (5, 5 + row * SQ_SIZE)
+                    surface.blit(label, label_pos)
+                # col characters
+                if row == 7:
+                    lbl = ROW_LABELS_WHITE if PLAYER == 'white' else ROW_LABELS_BLACK
+                    color = DARK_SQUARE_COLOR if (col + row) % 2 == 0 else LIGHT_SQUARE_COLOR
+                    label = self.font.render(lbl[col], 1, color)
+                    label_pos = (115 + col * SQ_SIZE, 1087)
+                    surface.blit(label, label_pos)
 
     def show_pieces(self, surface):
         for row in range(ROWS):

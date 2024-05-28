@@ -1,9 +1,11 @@
 import numpy as np
+import copy
 
 from .square import Square
 from .piece import *
 from .helper import get_opposite_color
 from .move import Move
+from .sound import *
 
 
 class Board:
@@ -11,29 +13,113 @@ class Board:
     def __init__(self):
         self.squares = np.empty((8, 8), dtype=object)
         self.last_move = None
+        self.revert_move = None
+        self.white_king = self.squares[7, 4] if PLAYER == 'white' else self.squares[0, 3]
+        self.black_king = self.squares[0, 4] if PLAYER == 'white' else self.squares[7, 3]
+        self.moved_piece = None
+        self.captured_piece = None
         self._create()
         self._add_piece('white')
         self._add_piece('black')
+        self.sound = Sound()
 
-    def move(self, piece, move):
+    def flip_board(self):
+        # Maybe do later
+        pass
+
+    def get_king(self, color):
+        return self.white_king if color == 'white' else self.black_king
+
+    def move(self, piece, move, future=False):
         initial = move.initial
         final = move.final
+
+        # thing that we don't want when checking the future
+        if not future:
+
+            # piece has moved
+            piece.moved = True
+
+            # set last move
+            self.last_move = move
+
+            # play sounds
+            if self.squares[final.row, final.col].has_piece():
+                self.sound.play_capture()
+            else:
+                self.sound.play_move()
+
+        # set move for revert
+        self.revert_move = Move(self.squares[initial.row, initial.col], self.squares[final.row, final.col])
+        self.moved_piece = self.squares[initial.row, initial.col].piece
+        self.captured_piece = self.squares[final.row, final.col].piece
 
         # move piece to new square
         self.squares[initial.row, initial.col].piece = None
         self.squares[final.row, final.col].piece = piece
 
-        # piece has moved
-        piece.moved = True
+        # setting the position for the kings if moved
+        if piece.name == 'king':
+            if piece.color == 'white':
+                self.white_king = self.squares[final.row, final.col]
+            else:
+                self.black_king = self.squares[final.row, final.col]
 
-        # clear previous possible moves
-        piece.clear_moves()
+        # clear all previous possible moves
+        self.clear_all_moves()
 
-        # set last move
-        self.last_move = move
+    def revert_board(self):
+        # fetch data
+        initial_row = self.revert_move.initial.row
+        initial_col = self.revert_move.initial.col
+        initial_piece = self.moved_piece
+        final_row = self.revert_move.final.row
+        final_col = self.revert_move.final.col
+        final_piece = self.captured_piece
+
+        # revert table
+        self.squares[initial_row, initial_col].piece = initial_piece
+        self.squares[final_row, final_col].piece = final_piece
+
+        # clear all previous possible moves
+        self.clear_all_moves()
+        self.calc_all_moves()
+
+    def clear_all_moves(self):
+        for square in self.squares.flat:
+            if square.has_piece():
+                square.piece.clear_moves()
+
+    def king_in_check(self, king):
+        for square in self.squares.flat:
+            if square.has_piece() and square.piece.color != king.piece.color:
+                for move in square.piece.moves:
+                    if move.final.row == king.row and move.final.col == king.col:
+                        return True
+        return False
+
+    def checkmate(self, color):
+        for square in self.squares.flat:
+            if square.has_piece() and color != square.piece.color and square.piece.has_moves():
+                return False
+        return True
 
     def valid_move(self, piece, move):
-        return move in piece.moves
+        if move in piece.moves:
+            self.move(piece, move, True)
+            self.calc_all_moves()
+            king_square = self.get_king(piece.color)
+            if self.king_in_check(king_square):
+                self.revert_board()
+                return False
+            self.revert_board()
+            return True
+        return False
+
+    def calc_all_moves(self):
+        for square in self.squares.flat:
+            if square.has_piece():
+                self.calc_moves(square.piece, square.row, square.col)
 
     def calc_moves(self, piece, row, col):
 
@@ -74,7 +160,8 @@ class Board:
                         add_move(row + 2 * piece.dir, col)
 
                 def add_capture_moves(next_row, next_col):
-                    if is_valid_position(next_row, next_col) and self.squares[next_row, next_col].has_enemy_piece(piece.color):
+                    if is_valid_position(next_row, next_col) and self.squares[next_row, next_col].has_enemy_piece(
+                            piece.color):
                         add_move(next_row, next_col)
 
                 # Add forward moves
@@ -175,3 +262,7 @@ class Board:
 
         # King
         self.squares[row_other, k_spot] = Square(row_other, k_spot, King(color))
+        if color == 'white':
+            self.white_king = self.squares[row_other, k_spot]
+        else:
+            self.black_king = self.squares[row_other, k_spot]

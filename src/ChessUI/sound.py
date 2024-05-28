@@ -4,25 +4,26 @@ import pygame
 
 class Sound:
     @staticmethod
-    def load_capture():
+    def play_capture():
         pygame.mixer.music.load(os.path.join('../assets/sounds/capture.mp3'))
+        pygame.mixer.music.play()
 
     @staticmethod
-    def load_move():
+    def play_move():
         pygame.mixer.music.load(os.path.join('../assets/sounds/move.mp3'))
+        pygame.mixer.music.play()
 
     @staticmethod
-    def load_castle():
+    def play_castle():
         pygame.mixer.music.load(os.path.join('../assets/sounds/castle.mp3'))
+        pygame.mixer.music.play()
 
     @staticmethod
-    def load_promote():
+    def play_promote():
         pygame.mixer.music.load(os.path.join('../assets/sounds/promote.mp3'))
+        pygame.mixer.music.play()
 
     @staticmethod
-    def load_check():
+    def play_check():
         pygame.mixer.music.load(os.path.join('../assets/sounds/check.mp3'))
-
-    @staticmethod
-    def play():
         pygame.mixer.music.play()

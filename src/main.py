@@ -18,8 +18,8 @@ class Main:
         game = self.game
         board = game.board
         dragger = game.dragger
-        sound = UI.Sound()
 
+        board.calc_all_moves()
         while True:
             game.show_bg(screen)
             game.show_last_move(screen)
@@ -40,14 +40,10 @@ class Main:
                     clicked_row = dragger.mouseY // UI.SQ_SIZE
                     clicked_col = dragger.mouseX // UI.SQ_SIZE
 
-                    sound.load_move()
-                    sound.play()
-
                     if board.squares[clicked_row, clicked_col].has_piece():
                         piece = board.squares[clicked_row, clicked_col].piece
                         # PVP mode
                         if UI.PVP_MODE:
-                            board.calc_moves(piece, clicked_row, clicked_col)
                             dragger.save_initial(event.pos)
                             dragger.drag_piece(piece)
                         # AI mode
@@ -63,8 +59,6 @@ class Main:
                 # release mouse-button
                 elif event.type == pygame.MOUSEBUTTONUP:
                     game.hovered_sqr = None
-                    sound.load_capture()
-                    sound.play()
                     if dragger.dragging and dragger.piece.color == game.next_player:
                         released_row = dragger.mouseY // UI.SQ_SIZE
                         released_col = dragger.mouseX // UI.SQ_SIZE
@@ -77,9 +71,19 @@ class Main:
                         # valid move?
                         if board.valid_move(dragger.piece, move):
                             board.move(dragger.piece, move)
+                            board.calc_all_moves()
+                            if board.king_in_check(board.get_king(UI.get_opposite_color(dragger.piece.color))):
+                                board.sound.play_check()
+                            if board.checkmate(dragger.piece.color):
+                                print(f'{dragger.piece.color} WINS!')
                             game.next_turn()
 
                     dragger.undrag_piece()
+
+                elif event.type == pygame.KEYDOWN:
+
+                    if event.key == pygame.K_f:
+                        board.flip_board()
 
                 # quit application
                 if event.type == pygame.QUIT:

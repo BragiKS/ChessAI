@@ -27,3 +27,8 @@ class Sound:
     def play_check():
         pygame.mixer.music.load(os.path.join('../assets/sounds/check.mp3'))
         pygame.mixer.music.play()
+
+    @staticmethod
+    def play_illegal():
+        pygame.mixer.music.load(os.path.join('../assets/sounds/illegal.mp3'))
+        pygame.mixer.music.play()

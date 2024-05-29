@@ -77,6 +77,8 @@ class Main:
                             if board.checkmate(dragger.piece.color):
                                 print(f'{dragger.piece.color} WINS!')
                             game.next_turn()
+                        else:
+                            board.sound.play_illegal()
 
                     dragger.undrag_piece()
 

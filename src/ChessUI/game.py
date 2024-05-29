@@ -53,19 +53,18 @@ class Game:
             piece = self.dragger.piece
 
             for move in piece.moves:
-
                 color = GREY_COLOR
-                radius = 25
                 col = move.final.col + 0.5
                 row = move.final.row + 0.5
+                radius = 60 if self.board.squares[move.final.row, move.final.col].has_piece() else 25
                 center = (col * SQ_SIZE, row * SQ_SIZE)
+                width = 10 if self.board.squares[move.final.row, move.final.col].has_piece() else 0
 
                 # Create a temporary surface with per-pixel alpha
-                temp_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-                temp_surface = temp_surface.convert_alpha()
+                temp_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA).convert_alpha()
 
                 # Draw the circle on the temporary surface
-                pygame.draw.circle(temp_surface, color, (radius, radius), radius)
+                pygame.draw.circle(temp_surface, color, (radius, radius), radius, width)
 
                 # Blit the temporary surface onto the main surface
                 surface.blit(temp_surface, (center[0] - radius, center[1] - radius))

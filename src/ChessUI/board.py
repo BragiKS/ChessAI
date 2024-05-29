@@ -157,13 +157,12 @@ class Board:
             case 'pawn':
 
                 def add_forward_moves():
-                    step = 1 if piece.moved else 2
                     square_one = self.squares[row + 1 * piece.dir, col]
                     square_two = self.squares[row + 2 * piece.dir, col]
                     if is_valid_position(row + 1 * piece.dir) and square_one.is_empty():
                         add_move(row + 1 * piece.dir, col)
-                    if is_valid_position(row + 2 * piece.dir) and step == 2 and square_two.is_empty():
-                        add_move(row + 2 * piece.dir, col)
+                        if not piece.moved and square_two.is_empty():
+                            add_move(row + 2 * piece.dir, col)
 
                 def add_capture_moves(next_row, next_col):
                     if is_valid_position(next_row, next_col) and self.squares[next_row, next_col].has_enemy_piece(

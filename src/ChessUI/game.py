@@ -53,6 +53,7 @@ class Game:
             piece = self.dragger.piece
 
             for move in piece.moves:
+
                 color = GREY_COLOR
                 radius = 25
                 col = move.final.col + 0.5
@@ -95,3 +96,6 @@ class Game:
         row = max(min(mouse_y // SQ_SIZE, 7), 0)
         col = max(min(mouse_x // SQ_SIZE, 7), 0)
         self.hovered_sqr = self.board.squares[row, col]
+
+    def reset(self):
+        self.__init__()

@@ -21,6 +21,9 @@ class Piece:
     def add_moves(self, move):
         self.moves.append(move)
 
+    def set_moves(self, moves):
+        self.moves = moves
+
     def clear_moves(self):
         self.moves = []
 

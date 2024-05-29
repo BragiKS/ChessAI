@@ -19,8 +19,8 @@ class Main:
         board = game.board
         dragger = game.dragger
 
-        board.calc_all_moves()
         while True:
+
             game.show_bg(screen)
             game.show_last_move(screen)
             game.show_hover(screen)
@@ -43,7 +43,8 @@ class Main:
                     if board.squares[clicked_row, clicked_col].has_piece():
                         piece = board.squares[clicked_row, clicked_col].piece
                         # PVP mode
-                        if UI.PVP_MODE:
+                        if UI.PVP_MODE and piece.color == game.next_player:
+                            board.calc_moves(piece, clicked_row, clicked_col)
                             dragger.save_initial(event.pos)
                             dragger.drag_piece(piece)
                         # AI mode
@@ -71,8 +72,7 @@ class Main:
                         # valid move?
                         if board.valid_move(dragger.piece, move):
                             board.move(dragger.piece, move)
-                            board.calc_all_moves()
-                            if board.king_in_check(board.get_king(UI.get_opposite_color(dragger.piece.color))):
+                            if board.check(board.get_king(UI.get_opposite_color(game.next_player))):
                                 board.sound.play_check()
                             if board.checkmate(dragger.piece.color):
                                 print(f'{dragger.piece.color} WINS!')
@@ -85,6 +85,13 @@ class Main:
                     # UNFINISHED MIGHT NOT DO THIS SINCE IT NEEDS ALOT OF REFORMATING
                     if event.key == pygame.K_f:
                         board.flip_board()
+
+                    if event.key == pygame.K_r:
+                        game.reset()
+                        screen = self.screen
+                        game = self.game
+                        board = game.board
+                        dragger = game.dragger
 
                 # quit application
                 if event.type == pygame.QUIT:

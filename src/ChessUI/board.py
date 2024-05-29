@@ -42,13 +42,6 @@ class Board:
 
         # thing that we don't want when checking the future
         if not future:
-
-            # piece has moved
-            piece.moved = True
-
-            # set last move
-            self.last_move = move
-
             # play sounds
             if self.squares[final.row, final.col].has_piece():
                 self.sound.play_capture()
@@ -56,7 +49,7 @@ class Board:
                 self.sound.play_move()
 
         # set move for revert
-        self.revert_move = Move(self.squares[initial.row, initial.col], self.squares[final.row, final.col])
+        self.revert_move = move
         self.moved_piece = self.squares[initial.row, initial.col].piece
         self.captured_piece = self.squares[final.row, final.col].piece
 
@@ -64,33 +57,26 @@ class Board:
         self.squares[initial.row, initial.col].piece = None
         self.squares[final.row, final.col].piece = piece
 
+        # pawn promotion
+        if isinstance(piece, Pawn):
+            self.check_promotion(piece, final)
+
+        # piece has moved
+        piece.moved = True
+
+        # set last move
+        self.last_move = move
+
+        # clear previous moves
+        piece.clear_moves()
+
         # setting the position for the kings if moved
         if piece.name == 'king':
             self.set_king(self.squares[final.row, final.col], piece.color)
 
-        # clear all previous possible moves
-        self.clear_all_moves()
-
-    def revert_board(self):
-        # fetch data
-        initial_row = self.revert_move.initial.row
-        initial_col = self.revert_move.initial.col
-        initial_piece = self.moved_piece
-        final_row = self.revert_move.final.row
-        final_col = self.revert_move.final.col
-        final_piece = self.captured_piece
-
-        # if king revert king move
-        if initial_piece.name == 'king':
-            self.set_king(self.squares[initial_row, initial_col], initial_piece.color)
-
-        # revert table
-        self.squares[initial_row, initial_col].piece = initial_piece
-        self.squares[final_row, final_col].piece = final_piece
-
-        # clear all previous possible moves
-        self.clear_all_moves()
-        self.calc_all_moves()
+    def check_promotion(self, piece, final):
+        if final.row == 0 or final.row == 7:
+            pass
 
     def clear_all_moves(self):
         for square in self.squares.flat:
@@ -105,6 +91,11 @@ class Board:
                         return True
         return False
 
+    def check(self, king):
+        temp_board = copy.deepcopy(self)
+        temp_board.calc_all_moves(get_opposite_color(king.piece.color))
+        return temp_board.king_in_check(king)
+
     def checkmate(self, color):
         for square in self.squares.flat:
             if square.has_piece() and color != square.piece.color and square.piece.has_moves():
@@ -112,29 +103,37 @@ class Board:
         return True
 
     def valid_move(self, piece, move):
-        if move in piece.moves:
-            self.move(piece, move, True)
-            self.calc_all_moves()
-            king_square = self.get_king(piece.color)
-            if self.king_in_check(king_square):
-                self.revert_board()
-                return False
-            self.revert_board()
-            return True
-        return False
+        return move in piece.moves
 
-    def calc_all_moves(self):
+    def future_move_valid(self, piece, move):
+        temp_piece = copy.deepcopy(piece)
+        temp_board = copy.deepcopy(self)
+        # Perform the move temporarily
+        temp_board.move(temp_piece, move, future=True)
+
+        # Recalculate all moves for the opposite color
+        temp_board.calc_all_moves(get_opposite_color(piece.color))
+
+        # Check if the current player's king is in check
+        king_square = temp_board.get_king(piece.color)
+        return temp_board.king_in_check(king_square)
+
+    def calc_all_moves(self, color):
         for square in self.squares.flat:
-            if square.has_piece():
-                self.calc_moves(square.piece, square.row, square.col)
+            if square.has_piece() and square.piece.color == color:
+                self.calc_moves(square.piece, square.row, square.col, False)
 
-    def calc_moves(self, piece, row, col):
+    def calc_moves(self, piece, row, col, bool=True):
 
         def add_move(next_row, next_col):
             initial = Square(row, col)
             final = Square(next_row, next_col)
             move = Move(initial, final)
-            piece.add_moves(move)
+            if bool:
+                if not self.future_move_valid(piece, move):
+                    piece.add_moves(move)
+            else:
+                piece.add_moves(move)
 
         def is_valid_position(*args):
             for arg in args:

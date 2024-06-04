@@ -1,6 +1,6 @@
 # Settings
-WIDTH = 1120
-HEIGHT = 1120
+WIDTH = 980
+HEIGHT = 980
 ROWS = 8
 COLS = 8
 PLAYER = 'white'  # Choose what pieces are at bottom

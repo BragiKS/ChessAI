@@ -45,6 +45,7 @@ class Game:
 
                     img = pygame.image.load(piece.texture)
                     img_center = col * SQ_SIZE + SQ_SIZE // 2, row * SQ_SIZE + SQ_SIZE // 2
+                    img = pygame.transform.smoothscale(img, (int(img.get_width() * (WIDTH / 1120)), int(img.get_height() * (HEIGHT / 1120))))
                     piece.texture_rect = img.get_rect(center=img_center)
                     if not self.dragger.piece == piece:
                         surface.blit(img, piece.texture_rect)

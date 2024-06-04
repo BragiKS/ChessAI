@@ -17,6 +17,7 @@ class Dragger:
         texture = self.piece.texture
         img = pygame.image.load(texture)
         img_center = (self.mouseX, self.mouseY)
+        img = pygame.transform.smoothscale(img, (int(img.get_width() * (WIDTH / 1120)), int(img.get_height() * (HEIGHT / 1120))))
         self.piece.texture_rect = img.get_rect(center=img_center)
         surface.blit(img, self.piece.texture_rect)
 

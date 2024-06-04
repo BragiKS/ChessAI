@@ -71,9 +71,8 @@ class Main:
 
                         # valid move?
                         if board.valid_move(dragger.piece, move):
+                            # move piece
                             board.move(dragger.piece, move)
-                            if board.check(board.get_king(UI.get_opposite_color(game.next_player))):
-                                board.sound.play_check()
                             if board.checkmate(dragger.piece.color):
                                 print(f'{dragger.piece.color} WINS!')
                             game.next_turn()
@@ -84,7 +83,7 @@ class Main:
 
                 elif event.type == pygame.KEYDOWN:
 
-                    # UNFINISHED MIGHT NOT DO THIS SINCE IT NEEDS ALOT OF REFORMATING
+                    # UNFINISHED MIGHT NOT DO THIS SINCE IT MIGHT NEED ALOT OF REFORMATING
                     if event.key == pygame.K_f:
                         board.flip_board()
 

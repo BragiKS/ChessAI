@@ -3,6 +3,7 @@ import pygame
 from .const import *
 from .board import Board
 from .dragger import Dragger
+from .piece import *
 
 
 class Game:
@@ -59,6 +60,11 @@ class Game:
                 radius = 60 if self.board.squares[move.final.row, move.final.col].has_piece() else 25
                 center = (col * SQ_SIZE, row * SQ_SIZE)
                 width = 10 if self.board.squares[move.final.row, move.final.col].has_piece() else 0
+
+                if isinstance(piece, Pawn) and self.board.en_passant is not None:
+                    if self.board.squares[move.final.row, move.final.col] == self.board.en_passant:
+                        radius = 60
+                        width = 10
 
                 # Create a temporary surface with per-pixel alpha
                 temp_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA).convert_alpha()

@@ -6,18 +6,20 @@ from .piece import *
 from .helper import get_opposite_color
 from .move import Move
 from .sound import *
+from .promote import *
 
 
 class Board:
 
     def __init__(self):
+
         self.squares = np.empty((8, 8), dtype=object)
         self.last_move = None
-        self.revert_move = None
         self.white_king = self.squares[7, 4] if PLAYER == 'white' else self.squares[0, 3]
         self.black_king = self.squares[0, 4] if PLAYER == 'white' else self.squares[7, 3]
         self.moved_piece = None
         self.captured_piece = None
+        self.en_passant = None
         self._create()
         self._add_piece('white')
         self._add_piece('black')
@@ -43,23 +45,44 @@ class Board:
         # thing that we don't want when checking the future
         if not future:
             # play sounds
-            if self.squares[final.row, final.col].has_piece():
+            # I know this if statement is fucked it's because I need the capture sound for "en passant"
+            if (self.squares[final.row, final.col].has_piece() or
+                    (isinstance(piece, Pawn) and self.en_passant is not None and
+                     self.squares[final.row, final.col] == self.en_passant)):
                 self.sound.play_capture()
             else:
                 self.sound.play_move()
 
-        # set move for revert
-        self.revert_move = move
         self.moved_piece = self.squares[initial.row, initial.col].piece
         self.captured_piece = self.squares[final.row, final.col].piece
+
+        # Remove piece that was captured with en passant
+        if isinstance(piece, Pawn) and self.en_passant is not None:
+            if self.squares[final.row, final.col] == self.en_passant:
+                self.squares[final.row - 1 * piece.dir, final.col].piece = None
 
         # move piece to new square
         self.squares[initial.row, initial.col].piece = None
         self.squares[final.row, final.col].piece = piece
 
-        # pawn promotion
+        # remove en_passant if any
+        self.en_passant = None
+
+        # pawn promotion and en passant
         if isinstance(piece, Pawn):
-            self.check_promotion(piece, final)
+            # set en_passant if piece moved 2 squares
+            if abs(initial.row - final.row) == 2:
+                self.en_passant = self.squares[initial.row + 1 * piece.dir, initial.col]
+
+            if final.row == 0 or final.row == 7:
+                if not future:
+                    self.pawn_promote(piece, final)
+                else:
+                    piece = Queen(piece.color)
+
+        # play check sound P.S needs to happen after moving piece
+        if not future and self.check(self.get_king(get_opposite_color(piece.color))):
+            self.sound.play_check()
 
         # piece has moved
         piece.moved = True
@@ -67,16 +90,16 @@ class Board:
         # set last move
         self.last_move = move
 
-        # clear previous moves
-        piece.clear_moves()
+        # clear all previous moves
+        self.clear_all_moves()
 
         # setting the position for the kings if moved
         if piece.name == 'king':
             self.set_king(self.squares[final.row, final.col], piece.color)
 
-    def check_promotion(self, piece, final):
-        if final.row == 0 or final.row == 7:
-            pass
+    def pawn_promote(self, piece, final):
+        promote = Promote(piece, final)
+        promote.start()
 
     def clear_all_moves(self):
         for square in self.squares.flat:
@@ -158,16 +181,22 @@ class Board:
 
                 def add_forward_moves():
                     square_one = self.squares[row + 1 * piece.dir, col]
-                    square_two = self.squares[row + 2 * piece.dir, col]
+                    square_two = self.squares[row + 2 * piece.dir, col] if not piece.moved else None
                     if is_valid_position(row + 1 * piece.dir) and square_one.is_empty():
                         add_move(row + 1 * piece.dir, col)
                         if not piece.moved and square_two.is_empty():
                             add_move(row + 2 * piece.dir, col)
 
                 def add_capture_moves(next_row, next_col):
-                    if is_valid_position(next_row, next_col) and self.squares[next_row, next_col].has_enemy_piece(
-                            piece.color):
+                    if (is_valid_position(next_row, next_col) and
+                            self.squares[next_row, next_col].has_enemy_piece(piece.color)):
                         add_move(next_row, next_col)
+
+                def add_en_passant_moves(next_row, next_col):
+                    if self.en_passant is not None:
+                        if (is_valid_position(next_row, next_col) and
+                                self.en_passant == self.squares[next_row, next_col]):
+                            add_move(next_row, next_col)
 
                 # Add forward moves
                 add_forward_moves()
@@ -176,10 +205,12 @@ class Board:
                 if col != 7:
                     right_capture = (row + 1 * piece.dir, col + 1)
                     add_capture_moves(*right_capture)
+                    add_en_passant_moves(*right_capture)
 
                 if col != 0:
                     left_capture = (row + 1 * piece.dir, col - 1)
                     add_capture_moves(*left_capture)
+                    add_en_passant_moves(*left_capture)
 
             case 'knight':
                 def add_knight_move(row_d, col_d):

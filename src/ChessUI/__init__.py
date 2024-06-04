@@ -6,3 +6,4 @@ from .dragger import *
 from .const import *
 from .move import *
 from .sound import *
+from .promote import *
